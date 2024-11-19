@@ -1,46 +1,48 @@
+// netlify/functions/chat.js
 import dotenv from 'dotenv';
 dotenv.config();
 
-import express from 'express';
-import bodyParser from 'body-parser';
 import Groq from 'groq-sdk';
 
-// Groq API
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
-// serveur express eli y5ademlk el front 3al port 3000
-const app = express();
-const PORT = 3000;
-
-app.use(bodyParser.json());
-app.use(express.static('public')); // Structure 
 
 let conversationHistory = [];
 
-// Khadija don't mess with this part ;p
+// Serverless function for /chat
+export async function handler(event) {
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method Not Allowed' }),
+    };
+  }
 
-app.post('/chat', async (req, res) => {
   try {
-    const userMessage = req.body.message;
+    const { message: userMessage } = JSON.parse(event.body);
 
+    // Add user's message to the conversation history
     conversationHistory.push({ role: 'user', content: userMessage });
 
+    // Call Groq API
     const chatCompletion = await groq.chat.completions.create({
       messages: conversationHistory,
       model: 'llama3-8b-8192',
     });
 
-    const modelResponse = chatCompletion.choices[0]?.message?.content || "";
+    const modelResponse = chatCompletion.choices[0]?.message?.content || '';
 
+    // Add assistant's response to the conversation history
     conversationHistory.push({ role: 'assistant', content: modelResponse });
 
-    res.json({ response: modelResponse });
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ response: modelResponse }),
+    };
   } catch (error) {
     console.error('Error fetching chat completion:', error);
-    res.status(500).json({ error: 'Failed to get chat completion' });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Failed to get chat completion' }),
+    };
   }
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+}
