@@ -1,0 +1,1 @@
+to start the server il suffit t7el terminal w tekteb node script.js taw ye7alk lien tekliki 3lih /// enjoy
