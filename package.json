@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "netlify dev",   
     "start": "netlify dev", 
-    "test": "echo \"No test specified\" && exit 1"
+    "test": "echo \"No test specified\" && exit 1",
+    "build": "echo 'No build step needed'"
   },
   "dependencies": {
     "body-parser": "^1.20.3",
