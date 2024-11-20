@@ -1,0 +1,6 @@
+[build]
+  publish = "public"  # Folder for static assets (or adjust if needed)
+  functions = "netlify/functions"  # Folder for serverless functions
+
+[context.production.environment]
+  NODE_ENV = "production"  # Optional: Set environment variables here if needed
