@@ -1,17 +1,15 @@
 [build]
-  publish = "public"  # Folder for static assets (or adjust if needed)
-  functions = "netlify/functions"  # Folder for serverless functions
+  command = "npm install && npm run build"
+  functions = "netlify/functions"
+  publish = "public"
 
 [functions]
   node_bundler = "esbuild"
 
-[[plugins]]
-  package = "@netlify/plugin-functions-core"
-
-[functions."chat"]
+[functions.chat]
   included_files = ["node_modules/groq-sdk/**"]
   external_node_modules = ["groq-sdk"]
-  timeout = 30  # Increase timeout to 30 seconds (adjust as needed)
+  timeout = 30
 
-[context.production.environment]
-  NODE_ENV = "production"  # Optional: Set environment variables here if needed
+[build.environment]
+  NODE_ENV = "production"
