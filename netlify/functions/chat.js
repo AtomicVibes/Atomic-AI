@@ -1,61 +1,47 @@
-const Groq = require('groq-sdk');
+import dotenv from 'dotenv';
+dotenv.config();
+
+import Groq from 'groq-sdk';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-exports.handler = async (event) => {
+let conversationHistory = [];
+
+// Serverless function for /chat
+export async function handler(event) {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-      },
       body: JSON.stringify({ error: 'Method Not Allowed' }),
     };
   }
 
   try {
-    const body = JSON.parse(event.body);
-    const { message: userMessage, history } = body;
+    const { message: userMessage } = JSON.parse(event.body);
 
-    if (!userMessage) {
-      return {
-        statusCode: 400,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({ error: 'Invalid input: message is required.' }),
-      };
-    }
-
-    // Manage conversation history
-    let conversationHistory = history || [];
+    // Add user's message to the conversation history
     conversationHistory.push({ role: 'user', content: userMessage });
 
+    // Call Groq API
     const chatCompletion = await groq.chat.completions.create({
       messages: conversationHistory,
       model: 'llama3-8b-8192',
     });
 
     const modelResponse = chatCompletion.choices[0]?.message?.content || '';
+
+    // Add assistant's response to the conversation history
     conversationHistory.push({ role: 'assistant', content: modelResponse });
 
     return {
       statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST',
-      },
       body: JSON.stringify({ response: modelResponse }),
     };
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error fetching chat completion:', error);
     return {
       statusCode: 500,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({ error: 'Failed to process chat completion' }),
+      body: JSON.stringify({ error: 'Failed to get chat completion' }),
     };
   }
-};
+}
